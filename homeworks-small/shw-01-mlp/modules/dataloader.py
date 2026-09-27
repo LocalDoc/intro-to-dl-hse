@@ -17,6 +17,7 @@ class DataLoader(object):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.batch_id = 0  # use in __next__, reset in __iter__
+        self.indices = np.arange(self.num_samples())
 
     def __len__(self) -> int:
         """
@@ -37,9 +38,9 @@ class DataLoader(object):
         """
         self.batch_id = 0
         if self.shuffle:
-            indices = np.random.permutation(self.num_samples())
-            self.X = self.X[indices]
-            self.y = self.y[indices]
+            self.indices = np.random.permutation(self.num_samples())
+        else:
+            self.indices = np.arange(self.num_samples())
         return self
 
     def __next__(self):
@@ -53,8 +54,11 @@ class DataLoader(object):
         start_idx = self.batch_id * self.batch_size
         end_idx = min(start_idx + self.batch_size, self.num_samples())
         
-        x_batch = self.X[start_idx:end_idx]
-        y_batch = self.y[start_idx:end_idx]
+        batch_indices = self.indices[start_idx:end_idx]
+        
+        x_batch = self.X[batch_indices]
+        y_batch = self.y[batch_indices]
         
         self.batch_id += 1
         return x_batch, y_batch
+        
