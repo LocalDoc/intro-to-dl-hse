@@ -45,6 +45,9 @@ class DataLoader(object):
         Form and return next data batch
         :return: (x_batch, y_batch)
         """
+        if self.batch_id >= len(self):
+            raise StopIteration        
+            
         start_idx = self.batch_id * self.batch_size
         end_idx = min(start_idx + self.batch_size, self.num_samples())
         
