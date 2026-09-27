@@ -11,8 +11,8 @@ class ReLU(Module):
         :param input: array of an arbitrary size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        return np.maximum(input, 0)
+        #return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -20,8 +20,8 @@ class ReLU(Module):
         :param grad_output: array of the same size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        return grad_output * (input > 0)
+        #return super().compute_grad_input(input, grad_output)
 
 
 class Sigmoid(Module):
@@ -33,8 +33,9 @@ class Sigmoid(Module):
         :param input: array of an arbitrary size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        import scipy.special
+        return scipy.special.expit(input)
+        #return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -42,8 +43,10 @@ class Sigmoid(Module):
         :param grad_output: array of the same size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        import scipy.special
+        s = scipy.special.expit(input)
+        return grad_output * s * (1 - s)
+        #return super().compute_grad_input(input, grad_output)
 
 
 class GELU(Module):
@@ -55,8 +58,9 @@ class GELU(Module):
         :param input: array of an arbitrary size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        import scipy.special
+        return input * scipy.special.ndtr(input)
+        #return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -64,8 +68,11 @@ class GELU(Module):
         :param grad_output: array of the same size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        import scipy.special
+        cdf = scipy.special.ndtr(input)
+        pdf = np.exp(-0.5 * input**2) / np.sqrt(2 * np.pi)
+        return grad_output * (cdf + input * pdf)
+        # return super().compute_grad_input(input, grad_output)
 
 
 class Softmax(Module):
@@ -77,8 +84,9 @@ class Softmax(Module):
         :param input: array of size (batch_size, num_classes)
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        import scipy.special
+        return scipy.special.softmax(input, axis=-1)
+        #  return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -86,8 +94,11 @@ class Softmax(Module):
         :param grad_output: array of the same size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        import scipy.special
+        s = scipy.special.softmax(input, axis=-1)
+        return s * (grad_output - np.sum(grad_output * s, axis=-1,
+                                        keepdims=True))
+        # return super().compute_grad_input(input, grad_output)
 
 
 class LogSoftmax(Module):
@@ -99,8 +110,9 @@ class LogSoftmax(Module):
         :param input: array of size (batch_size, num_classes)
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        import scipy.special
+        return input - scipy.special.logsumexp(input, axis=-1, keepdims=True)
+        # return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -108,5 +120,7 @@ class LogSoftmax(Module):
         :param grad_output: array of the same size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        import scipy.special
+        s = scipy.special.softmax(input, axis=-1)
+        return grad_output - np.sum(grad_output, axis=-1, keepdims=True) * s
+       # return super().compute_grad_input(input, grad_output)

@@ -27,8 +27,12 @@ class Linear(Module):
         :param input: array of shape (batch_size, in_features)
         :return: array of shape (batch_size, out_features)
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        output = input @ self.weight.T 
+        if self.bias is not None: 
+            output += self.bias 
+
+        return output
+        # return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -36,16 +40,18 @@ class Linear(Module):
         :param grad_output: array of shape (batch_size, out_features)
         :return: array of shape (batch_size, in_features)
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        return grad_output @ self.weight
+        # return super().compute_grad_input(input, grad_output)
 
     def update_grad_parameters(self, input: np.ndarray, grad_output: np.ndarray):
         """
         :param input: array of shape (batch_size, in_features)
         :param grad_output: array of shape (batch_size, out_features)
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        super().update_grad_parameters(input, grad_output)
+        self.grad_weight += grad_output.T @ input 
+        if self.bias is not None: 
+            self.grad_bias += np.sum(grad_output, axis=0)
+        # super().update_grad_parameters(input, grad_output)
 
     def zero_grad(self):
         self.grad_weight.fill(0)
@@ -108,8 +114,24 @@ class BatchNormalization(Module):
         :param input: array of shape (batch_size, num_features)
         :return: array of shape (batch_size, num_features)
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        if self.training: 
+            B = input.shape[0]
+            self.mean = np.mean(input, axis=0)
+            self.var = np.var(input, axis = 0)
+            self.input_mean = input - self.mean
+            self.sqrt_var = np.sqrt(self.var + self.eps)
+            self.inv_sqrt_var = 1.0 / self.sqrt_var
+            self.norm_input = self.input_mean * self.inv_sqrt_var
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * self.mean 
+            self.running_var = ( 1 - self.momentum) * self.running_var + self.momentum * self.var * (B / (B - 1))
+        else: 
+            self.norm_input = (input - self.running_mean) / np.sqrt(self.running_var + self.eps)
+
+        if self.affine:
+            return self.norm_input * self.weight + self.bias
+        
+        return self.norm_input  
+        # return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -117,16 +139,32 @@ class BatchNormalization(Module):
         :param grad_output: array of shape (batch_size, num_features)
         :return: array of shape (batch_size, num_features)
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        if self.affine:
+            grad_norm = grad_output * self.weight 
+        else: 
+            grad_norm = grad_output
+
+        if self.training:
+            B = input.shape[0]
+            grad_input = (1.0 / B) * self.inv_sqrt_var * (
+                B * grad_norm - np.sum(grad_norm, axis=0) 
+                - self.norm_input * np.sum(grad_norm * self.norm_input, axis=0)
+            ) 
+
+            return grad_input
+        else: 
+            return grad_norm / np.sqrt(self.running_var + self.eps)
+        # return super().compute_grad_input(input, grad_output)
 
     def update_grad_parameters(self, input: np.ndarray, grad_output: np.ndarray):
         """
         :param input: array of shape (batch_size, num_features)
         :param grad_output: array of shape (batch_size, num_features)
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        super().update_grad_parameters(input, grad_output)
+        if self.affine: 
+            self.grad_weight += np.sum(grad_output * self.norm_input, axis=0)
+            self.grad_bias += np.sum(grad_output, axis=0)
+        #super().update_grad_parameters(input, grad_output)
 
     def zero_grad(self):
         if self.affine:
@@ -159,8 +197,11 @@ class Dropout(Module):
         :param input: array of an arbitrary size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        if self.training:
+            self.mask = np.random.binomial(1, 1 - self.p, size=input.shape)
+            return input * self.mask / (1 - self.p)
+        return input
+        # return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -168,8 +209,10 @@ class Dropout(Module):
         :param grad_output: array of the same size
         :return: array of the same size
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        if self.training:
+            return grad_output * self.mask / (1 - self.p)
+        return grad_output
+        #return super().compute_grad_input(input, grad_output)
 
     def __repr__(self) -> str:
         return f'Dropout(p={self.p})'
@@ -188,8 +231,11 @@ class Sequential(Module):
         :param input: array of size matching the input size of the first layer
         :return: array of size matching the output size of the last layer
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_output(input)
+        output = input
+        for module in self.modules:
+            output = module(output)
+        return output
+        # return super().compute_output(input)
 
     def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
         """
@@ -197,8 +243,12 @@ class Sequential(Module):
         :param grad_output: array of size matching the output size of the last layer
         :return: array of size matching the input size of the first layer
         """
-        # replace with your code ｀、ヽ｀、ヽ(ノ＞＜)ノ ヽ｀☂｀、ヽ
-        return super().compute_grad_input(input, grad_output)
+        grad = grad_output
+        for i in range(len(self.modules) - 1, -1, -1):
+            layer_input = self.modules[i - 1].output if i > 0 else input
+            grad = self.modules[i].backward(layer_input, grad)
+        return grad
+        # return super().compute_grad_input(input, grad_output)
 
     def __getitem__(self, item):
         return self.modules[item]
@@ -227,3 +277,78 @@ class Sequential(Module):
             repr_str += ' ' * 4 + repr(module) + '\n'
         repr_str += ')'
         return repr_str
+
+class LowRankLinear(Module):
+    """
+    As per the uncovered mystery, it applies a low-rank linear transformation of data: y = x V^T U^T + b
+    where the weight matrix W is factorized into U and V 
+    """
+    def __init__(self, in_features: int, out_features: int, max_rank: int, bias: bool = True):
+        """
+        in_features: input vector features
+        out_features: output vector feats
+        ax_rank: max rank of weight matrix
+        bias: whether to use additive bias or not 
+        """
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.max_rank = max_rank if max_rank is not None else min(in_features, out_features)
+
+        # shape for U: (out_features, max_rank)
+        #shape for V: (max_rank, in_features)
+        self.U = np.random.uniform(-1, 1, (out_features, self.max_rank)) / np.sqrt(self.max_rank)
+        self.V = np.random.uniform(-1, 1, (self.max_rank, in_features)) / np.sqrt(in_features)
+        self.bias = np.random.uniform(-1, 1, out_features) / np.sqrt(in_features) if bias else None
+
+        self.grad_U = np.zeros_like(self.U)
+        self.grad_V = np.zeros_like(self.V)
+        self.grad_bias = np.zeros_like(self.bias) if bias else None
+
+    def compute_output(self, input: np.ndarray) -> np.ndarray:
+        """
+        input: array of shape (batch_size, in_features)
+        return: give back an array of shape (batch_size, out_features)
+        """
+        output = input @ self.V.T @ self.U.T
+        if self.bias is not None:
+            output += self.bias
+        return output
+
+    def compute_grad_input(self, input: np.ndarray, grad_output: np.ndarray) -> np.ndarray:
+        """
+        input: array shape (batch_size, in_features)
+        grad_output: array shape (batch_size, out_features)
+        return: array shape (batch_size, in_features)
+        """
+        return grad_output @ self.U @ self.V
+
+    def update_grad_parameters(self, input: np.ndarray, grad_output: np.ndarray):
+        """
+        input: (batch_size, in_features)
+        grad_output: batch_size, out_features)
+        """
+        self.grad_U += grad_output.T @ (input @ self.V.T)
+        self.grad_V += (grad_output @ self.U).T @ input
+        if self.bias is not None:
+            self.grad_bias += np.sum(grad_output, axis=0)
+
+    def zero_grad(self):
+        self.grad_U.fill(0)
+        self.grad_V.fill(0)
+        if self.bias is not None:
+            self.grad_bias.fill(0)
+
+    def parameters(self) -> List[np.ndarray]:
+        if self.bias is not None:
+            return [self.U, self.V, self.bias]
+        return [self.U, self.V]
+
+    def parameters_grad(self) -> List[np.ndarray]:
+        if self.bias is not None:
+            return [self.grad_U, self.grad_V, self.grad_bias]
+        return [self.grad_U, self.grad_V]
+
+    def __repr__(self) -> str:
+        return f'LowRankLinear(in_features={self.in_features}, out_features={self.out_features}, ' \
+               f'max_rank={self.max_rank}, bias={not self.bias is None})'
