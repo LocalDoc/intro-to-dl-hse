@@ -24,9 +24,13 @@
 
 1. Метод обратного распространения ошибки, полносвязные нейронные сети: [доска](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/lecture-notes/notes-01-mlp.pdf), [конспект (old)](https://github.com/xiyori/intro-to-dl-hse/blob/2025-2026/lecture-latex/notes-01-mlp.pdf)
 2. Кросс-энтропийная функция потерь, регуляризации: [доска](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/lecture-notes/notes-02-dropout-batchnorm.pdf), [конспект (old)](https://github.com/xiyori/intro-to-dl-hse/blob/2025-2026/lecture-latex/notes-02-dropout-batchnorm.pdf)
+3. Оптимизация нейронных сетей: [доска](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/lecture-notes/notes-03-optimization.pdf)
+4. Операция свертки: [доска](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/lecture-notes/notes-04-convolution.pdf)
 
 ## Семинары
-1. Введение в библиотеку PyTorch. Автоматическое дифференцирование: [ноутбук](https://github.com/xiyori/intro-to-dl-hse/blob/2025-2026/seminars/242/seminar-01-intro.ipynb)
+0. Введение в библиотеку PyTorch. Автоматическое дифференцирование: [ноутбук](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/seminars/242/seminar-01-intro.ipynb)
+1. Полносвязные нейронные сети. Общая схема пайплайна обучения на PyTorch: [ноутбук](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/seminars/232/seminar-02-backprop.ipynb)
+2. Оптимизация нейронных сетей (SGD/Adam/AdamW, SAM, SWA): [ноутбук](seminars/242/seminar-03-optimization.ipynb)
 
 ## Маленькие домашние задания
 
@@ -37,4 +41,3 @@
 Теоретические ДЗ не сдаются и предлагаются студентам для самостоятельного решения и ознакомления
 
 1. Полносвязные нейронные сети: [ссылка](https://github.com/xiyori/intro-to-dl-hse/blob/2026-2027/homeworks-theory/thw-01-mlp.pdf)
-
