@@ -1,3 +1,5 @@
+import numpy as np
+
 class DataLoader(object):
     """
     Tool for shuffling data and forming mini-batches
